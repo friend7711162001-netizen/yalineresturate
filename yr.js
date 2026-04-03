@@ -272,6 +272,7 @@ function renderMonthlyStats() {
     const targetMonth = parseInt(parts[1], 10);
     
     let stats = { '蟹蟹鍋': 0, '菊A': 0, '菊B': 0 };
+    let monthOrders = [];
 
     globalOrders.forEach(order => {
         const orderDateParts = order.date.split('/');
@@ -279,13 +280,58 @@ function renderMonthlyStats() {
             const om = parseInt(orderDateParts[0], 10);
             if (om === targetMonth) {
                 if (stats[order.option] !== undefined) stats[order.option]++;
+                monthOrders.push(order);
             }
         }
     });
 
+    // 渲染右上角的數量統計
     let gridHtml = '';
     Object.keys(stats).forEach(key => {
         gridHtml += `<div class="stat-item"><span class="label">${key}</span><span class="value">${stats[key]}</span></div>`;
     });
     document.getElementById('monthly-stats-grid').innerHTML = gridHtml;
+
+    // 將月份名單以日期與時間排序
+    monthOrders.sort((a, b) => {
+        const ad = a.date.split('/')[1] || 0;
+        const bd = b.date.split('/')[1] || 0;
+        if (ad !== bd) return parseInt(ad) - parseInt(bd);
+        
+        const parseTime = (timeStr) => {
+            if (!timeStr) return 9999;
+            const parts = timeStr.split(':');
+            return parts.length === 2 ? parseInt(parts[0]) * 60 + parseInt(parts[1]) : 9999;
+        };
+        return parseTime(a.time) - parseTime(b.time);
+    });
+
+    // 渲染底部的完整名單
+    document.getElementById('monthly-list-title').innerText = `${targetMonth} 月份完整名單 (${monthOrders.length} 筆)`;
+    let trHtml = '';
+
+    if (monthOrders.length === 0) {
+        trHtml = `<tr><td colspan="7" class="loading-text" style="text-align: center; padding: 30px;">此月份尚無任何餐點資料。</td></tr>`;
+    } else {
+        monthOrders.forEach(o => {
+            const isSelfPay = o.ticketNo.includes('自費');
+            const tStyle = isSelfPay ? "color: #dc2626; font-weight: bold;" : "";
+            const uStyle = o.used ? "color: var(--success-color); font-weight: bold;" : "color: var(--text-muted);";
+            const memoBadge = o.memo ? `<span style="background: #fffbeb; color: #92400e; padding: 2px 6px; border-radius: 4px; font-size: 0.85rem;">${o.memo}</span>` : '';
+            
+            trHtml += `
+                <tr>
+                    <td style="font-weight: 500;">${o.date}</td>
+                    <td style="font-family: var(--font-en);">${o.time || '-'}</td>
+                    <td style="font-weight: 500;">${o.name || '無'}</td>
+                    <td><span class="meal-badge badge-${o.option}" style="padding: 4px 8px; font-size: 0.9rem;">${o.option}</span></td>
+                    <td style="${tStyle}">${o.ticketNo}</td>
+                    <td>${memoBadge}</td>
+                    <td style="${uStyle}">${o.used ? '✔️ 已出餐' : '未出餐'}</td>
+                </tr>
+            `;
+        });
+    }
+
+    document.getElementById('monthly-list-body').innerHTML = trHtml;
 }

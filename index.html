@@ -80,6 +80,30 @@
         </section>
     </main>
 
+    <section class="monthly-list-section">
+        <div class="panel-header" style="background: var(--panel-bg); border-top-left-radius: var(--radius-md); border-top-right-radius: var(--radius-md); border: 1px solid var(--border-color); border-bottom: none;">
+            <h3 id="monthly-list-title">指定月份所有名單</h3>
+        </div>
+        <div class="table-wrapper">
+            <table class="monthly-table">
+                <thead>
+                    <tr>
+                        <th width="10%">日期</th>
+                        <th width="10%">時間</th>
+                        <th width="20%">單位/姓名</th>
+                        <th width="15%">選項</th>
+                        <th width="15%">券號</th>
+                        <th width="20%">備註</th>
+                        <th width="10%">狀態</th>
+                    </tr>
+                </thead>
+                <tbody id="monthly-list-body">
+                    <tr><td colspan="7" class="loading-text" style="text-align: center;">選擇月份以顯示資料...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
     <script src="yr.js"></script>
 </body>
 </html>

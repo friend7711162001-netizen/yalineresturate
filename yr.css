@@ -569,3 +569,54 @@ input[type="date"]:focus, input[type="month"]:focus {
   background: #f1f5f9;
   font-weight: 500;
 }
+
+/* ==========================================================================
+   Monthly Full List (底部月度總表)
+   ========================================================================== */
+.monthly-list-section {
+  max-width: 1600px;
+  margin: 0 auto 40px auto;
+  width: 100%;
+  padding: 0 24px;
+}
+
+.monthly-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-bottom-left-radius: var(--radius-md);
+  border-bottom-right-radius: var(--radius-md);
+  -webkit-border-radius: var(--radius-md); 
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+  font-size: 0.95rem;
+}
+
+.monthly-table th, .monthly-table td {
+  padding: 14px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.monthly-table th {
+  background: #fdf6e3;
+  color: var(--primary-hover);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.monthly-table tr:last-child td {
+  border-bottom: none;
+}
+
+.monthly-table tr:hover {
+  background: #fcfaf8;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  border: 1px solid var(--border-color);
+  border-top: none;
+}
