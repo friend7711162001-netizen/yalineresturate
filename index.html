@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>yaling出差餐點管理</title>
+    <!-- 引入 Google Fonts: Noto Sans TC 提供優質中文顯示, Outfit 提供好看的英數字 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Outfit:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- 引入 CSS -->
+    <link rel="stylesheet" href="yr.css">
+</head>
+<body>
+        <div class="header-left">
+            <span class="icon">🍽️</span>
+            <h2>yaling出差餐點管理</h2>
+        </div>
+        <div class="header-actions">
+            <div class="date-selector">
+                <label for="operation-date">作業日期：</label>
+                <input type="date" id="operation-date" onchange="renderApp()">
+            </div>
+            <button id="refresh-button" class="btn-refresh" onclick="fetchData()" title="重新載入表格資料">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3"/></svg>
+                重新整理
+            </button>
+        </div>
+    </header>
+
+    <main class="app-container">
+        <!-- 左側：訂單清單 -->
+        <section class="left-panel">
+            <div class="panel-header">
+                <h3>出餐明細清單</h3>
+                <span class="subtitle">自動過濾包含「蟹蟹鍋、菊A、菊B」之符合日期訂單</span>
+            </div>
+            <div id="orders-list" class="orders-list">
+                <!-- Javascript 將渲染訂單卡片在這裡 -->
+                <div class="loading-text">請先登入並等待系統載入資料...</div>
+            </div>
+        </section>
+
+        <!-- 右側：統計小工具 -->
+        <section class="right-panel">
+            <!-- 今日/指定日統計 -->
+            <div class="stats-card">
+                <div class="card-header">
+                    <h3>選項統計 (依日期)</h3>
+                    <p class="desc" id="current-date-display">尚無日期</p>
+                </div>
+                <div class="stats-grid" id="daily-stats-grid">
+                    <!-- 動態載入統計 -->
+                    <div class="stat-item"><span class="label">蟹蟹鍋</span><span class="value">0</span></div>
+                    <div class="stat-item"><span class="label">菊A</span><span class="value">0</span></div>
+                    <div class="stat-item"><span class="label">菊B</span><span class="value">0</span></div>
+                </div>
+                
+                <h4 class="timeline-title">出餐時間軸</h4>
+                <div class="timeline" id="daily-timeline">
+                    <!-- 動態載入時間軸 -->
+                </div>
+            </div>
+
+            <!-- 月統計篩選器 -->
+            <div class="stats-card monthly-card">
+                <div class="card-header">
+                    <h3>月度出餐統計</h3>
+                    <div class="month-selector">
+                        <input type="month" id="month-filter" onchange="renderMonthlyStats()">
+                    </div>
+                </div>
+                <div class="stats-grid" id="monthly-stats-grid">
+                    <!-- 動態載入月度統計 -->
+                    <div class="stat-item"><span class="label">蟹蟹鍋</span><span class="value">0</span></div>
+                    <div class="stat-item"><span class="label">菊A</span><span class="value">0</span></div>
+                    <div class="stat-item"><span class="label">菊B</span><span class="value">0</span></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="yr.js"></script>
+</body>
+</html>
