@@ -56,26 +56,15 @@ async function fetchData() {
 
         // 解析資料為物件格式
         globalOrders = values.map((row, index) => {
-            let dateVal = row[7] || '';
-            let timeVal = row[8] || '';
-
-            // 如果 H 欄 (row[7]) 包含空白，例如 "3/5 18:30"，我們將其拆分為日期與時間
-            if (dateVal.includes(' ')) {
-                const parts = dateVal.trim().split(/\s+/);
-                dateVal = parts[0];
-                if (!timeVal && parts.length > 1) {
-                    timeVal = parts[1];
-                }
-            }
-
             return {
                 rowId: index + 2, // 因為我們從 A2 開始讀取，第一筆資料是第 2 列
                 orderId: row[0] || '',
                 name: row[2] || '',
+                ticketNo: row[5] || '', // F 欄: 券號
                 option: row[6] || '',
-                date: dateVal, // 格式變成乾淨的 "3/5"
-                time: timeVal, // 格式變成 "18:30"
-                used: row[11] || '' // L欄 "已用券"
+                date: row[7] || '', // H 欄: 餐日期
+                time: row[8] || '', // I 欄: 餐時間
+                used: row[11] || '' // L 欄: "已用券"
             };
         }).filter(order => TARGET_OPTIONS.includes(order.option)); // 預先過濾出我們關心的餐點
 
@@ -186,12 +175,18 @@ function renderOrdersList(orders) {
         html += `
         <div class="order-card ${isUsed ? 'used' : ''}">
             <div class="order-left-group">
-                <div class="time-slot">
+                <div class="time-slot" style="min-width: 85px;">
+                    <span style="font-size: 0.8rem; font-weight: bold; color: var(--primary-hover); opacity: 0.8; margin-bottom: 2px;">${order.date || '無日期'}</span>
                     <span class="time">${order.time || '未定'}</span>
                 </div>
                 <div class="user-info">
-                    <h4>${order.name || '無名稱'}</h4>
-                    <span class="meal-badge badge-${order.option}">${order.option}</span>
+                    <div class="meal-badge badge-${order.option}" style="font-size: 1.25rem; font-weight: 700; padding: 6px 14px; margin-bottom: 6px; display: inline-block;">
+                        ${order.option || '無內容'}
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 1.05rem; font-weight: 500; color: var(--text-main);">${order.name || '無名稱'}</span>
+                        <span style="font-size: 0.8rem; font-weight: normal; color: var(--text-muted); background: #f3e8dd; padding: 2px 6px; border-radius: 4px; letter-spacing: 0.5px;">券號: ${order.ticketNo || '無'}</span>
+                    </div>
                 </div>
             </div>
             <div class="order-action">
