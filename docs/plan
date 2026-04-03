@@ -1,0 +1,61 @@
+# 餐廳訂單記錄表開發計畫
+
+本計畫旨在建立一個純前端的 Web 應用程式，並透過 Google Sheets API 讀取與更新您的「晚餐券新版（與餐廳同步）」試算表。系統會過濾特定的餐點選項，提供視覺化的訂單列表、每日/每月統計與出餐打卡功能。
+
+## User Review Required
+
+> [!WARNING]
+> **純前端 Google 登入限制 (重要)**
+> 由於我們使用純前端 (HTML/JS) 架構且沒有後端伺服器，Google 目前的安全規範 (Google Identity Services) **無法在純前端永久發放且儲存「長效型 Refresh Token」**。
+> - **影響**：您登入後取得的權杖 (Token) 通常有效期限約為 1 小時。過期後可能需要重新點擊一次授權按鈕。
+> - **解法**：我們會盡可能利用 Google 提供的快取機制，讓您不需重複輸入帳密，但「點擊授權」的操作在一段時間後仍是必要的。如果您希望「永久不用登入」，會需要一個後端伺服器（如 Node.js 或 Google Apps Script）。
+
+> [!IMPORTANT]  
+> **Google Cloud API 設定**
+> 您需要前往 Google Cloud Console：
+> 1. 啟用 **Google Sheets API**。
+> 2. 建立 **OAuth 用戶端 ID** (應用程式類型選擇「網頁應用程式」，並設定授權的 JavaScript 來源)。
+> 3. 建立 **API 金鑰 (API Key)** (供讀取公開資訊或初始化使用)。
+
+## Proposed Changes
+
+---
+
+### 前端介面與邏輯 (Frontend Application)
+
+#### [NEW] [index.html](file:///h:/我的雲端硬碟/學習/yalineresturate/index.html)
+- 匯入 Google GIS (`https://accounts.google.com/gsi/client`) 與 GAPI (`https://apis.google.com/js/api.js`) 腳本。
+- 建立現代化的排版 (CSS Grid/Flexbox)：
+  - **頂部**：登入按鈕、月統計摘要、日期篩選器。
+  - **左側主區塊**：列出尚未用餐的訂單 (姓名、選項、餐日期與時間、打卡 Checkbox)。
+  - **右側面板**：特定日期的訂單統計 (如 3/31 的蟹蟹鍋總數)，以及依時間排序的出餐排程。
+
+#### [MODIFY] [yr.css](file:///h:/我的雲端硬碟/學習/yalineresturate/yr.css)
+- 實作高質感的 UI 設計 (現代化、乾淨的卡片式設計，帶有微動畫)。
+- 對未用餐與已用餐的狀態建立不同的視覺樣式。
+- 右側統計面版提供高對比度和容易閱讀的版面，方便餐廳人員快速瀏覽出餐量。
+
+#### [MODIFY] [yr.js](file:///h:/我的雲端硬碟/學習/yalineresturate/yr.js)
+- **變數定義區**：保留 `CLIENT_ID`, `API_KEY`, `SPREADSHEET_ID`, `SHEET_NAME` 供您填寫。
+- **身分驗證邏輯**：使用 `google.accounts.oauth2.initTokenClient` 進行授權。
+- **資料處理邏輯**：
+  - 讀取試算表資料。
+  - 過濾邏輯：只顯示 `選項` 為 `蟹蟹鍋`、`菊A`、`菊B` 的資料。
+  - 時間解析：解析 `餐日期` 與 `餐時間`。
+  - 月統計：根據資料庫中已用餐與未用餐的資料，計算每月數量。
+- **回傳更新邏輯**：當勾選「已用券/已用餐」的方塊時，呼叫 `gapi.client.sheets.spreadsheets.values.update` 寫入當前打卡標記至對應的 Row。
+
+## Open Questions
+
+> [!NOTE]
+> 1. 表格標題的欄位名稱有一點出入：您提供的範例最後一欄叫做 `已用券`，但後續說明提到要回傳到 `已用餐`，我程式碼中預設會搜尋叫做 **`已用券`** 或 **`已用餐`** 的欄位，請問應以哪一個為主？
+> 2. 月統計的部分，是只要統計本月的「蟹蟹鍋、菊A、菊B」總量嗎？
+
+## Verification Plan
+
+### Manual Verification
+1. 用瀏覽器打開 `index.html`。
+2. 填入您的 `CLIENT_ID`, `API_KEY` 與試算表 ID。
+3. 點擊登入授權。
+4. 確認左側的名單正確過濾出餐點，且右側有今日/指定日期的統計與時間軸。
+5. 勾選某個訂單的 Checkbox，並至 Google 試算表確認該欄位是否有被成功標記為已使用 (例如填寫 "V" 或是時間戳記)。
