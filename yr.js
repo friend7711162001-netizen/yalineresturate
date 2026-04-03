@@ -64,6 +64,7 @@ async function fetchData() {
                 option: row[6] || '',
                 date: row[7] || '', // H 欄: 餐日期
                 time: row[8] || '', // I 欄: 餐時間
+                memo: row[10] || '', // K 欄: 備註
                 used: row[11] || '' // L 欄: "已用券"
             };
         }).filter(order => TARGET_OPTIONS.includes(order.option)); // 預先過濾出我們關心的餐點
@@ -172,6 +173,12 @@ function renderOrdersList(orders) {
     orders.forEach(order => {
         const isUsed = order.used.trim() !== '';
         
+        // 判斷是否包含「自費」，若有則套用顯眼的紅字與大字體樣式
+        const isSelfPay = order.ticketNo.includes('自費');
+        const ticketStyle = isSelfPay 
+            ? "font-size: 1.15rem; font-weight: bold; color: #dc2626; background: #fee2e2; border: 1px solid #f87171; padding: 2px 8px; border-radius: 4px; letter-spacing: 0.5px;"
+            : "font-size: 0.8rem; font-weight: normal; color: var(--text-muted); background: #f3e8dd; padding: 2px 6px; border-radius: 4px; letter-spacing: 0.5px;";
+        
         html += `
         <div class="order-card ${isUsed ? 'used' : ''}">
             <div class="order-left-group">
@@ -185,8 +192,9 @@ function renderOrdersList(orders) {
                     </div>
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <span style="font-size: 1.05rem; font-weight: 500; color: var(--text-main);">${order.name || '無名稱'}</span>
-                        <span style="font-size: 0.8rem; font-weight: normal; color: var(--text-muted); background: #f3e8dd; padding: 2px 6px; border-radius: 4px; letter-spacing: 0.5px;">券號: ${order.ticketNo || '無'}</span>
+                        <span style="${ticketStyle}">券號: ${order.ticketNo || '無'}</span>
                     </div>
+                    ${order.memo ? `<div style="font-size: 0.85rem; color: #92400e; background: #fffbeb; padding: 4px 8px; border-radius: 6px; margin-top: 8px; border-left: 3px solid #fcd34d; font-weight: 500;">備註：${order.memo}</div>` : ''}
                 </div>
             </div>
             <div class="order-action">
