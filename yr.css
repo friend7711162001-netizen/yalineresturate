@@ -620,3 +620,11 @@ input[type="date"]:focus, input[type="month"]:focus {
   border: 1px solid var(--border-color);
   border-top: none;
 }
+
+.date-group-header td {
+  transition: var(--transition);
+}
+
+.date-group-header:hover td {
+  background: #f1f5f9 !important;
+}

@@ -313,25 +313,91 @@ function renderMonthlyStats() {
     if (monthOrders.length === 0) {
         trHtml = `<tr><td colspan="7" class="loading-text" style="text-align: center; padding: 30px;">此月份尚無任何餐點資料。</td></tr>`;
     } else {
+        // 先依照日期群組化
+        const groupedByDate = {};
         monthOrders.forEach(o => {
-            const isSelfPay = o.ticketNo.includes('自費');
-            const tStyle = isSelfPay ? "color: #dc2626; font-weight: bold;" : "";
-            const uStyle = o.used ? "color: var(--success-color); font-weight: bold;" : "color: var(--text-muted);";
-            const memoBadge = o.memo ? `<span style="background: #fffbeb; color: #92400e; padding: 2px 6px; border-radius: 4px; font-size: 0.85rem;">${o.memo}</span>` : '';
+            if (!groupedByDate[o.date]) {
+                groupedByDate[o.date] = [];
+            }
+            groupedByDate[o.date].push(o);
+        });
+
+        Object.keys(groupedByDate).forEach(date => {
+            const dateOrders = groupedByDate[date];
+            
+            // 計算各別筆數
+            let stats = { '蟹蟹鍋': 0, '菊A': 0, '菊B': 0 };
+            dateOrders.forEach(o => {
+                if(stats[o.option] !== undefined) stats[o.option]++;
+            });
+            let statHtml = '';
+            for(let key in stats) {
+                if(stats[key] > 0) {
+                    statHtml += `<span style="margin-left: 8px; font-size: 0.85em; padding: 2px 8px;" class="meal-badge badge-${key}">${key}: ${stats[key]}</span>`;
+                }
+            }
+
+            // 產生唯一群組 ID (例如將 3/31 轉為 3-31)
+            const safeId = date.replace(/[^a-zA-Z0-9]/g, '-');
             
             trHtml += `
-                <tr>
-                    <td style="font-weight: 500;">${o.date}</td>
-                    <td style="font-family: var(--font-en);">${o.time || '-'}</td>
-                    <td style="font-weight: 500;">${o.name || '無'}</td>
-                    <td><span class="meal-badge badge-${o.option}" style="padding: 4px 8px; font-size: 0.9rem;">${o.option}</span></td>
-                    <td style="${tStyle}">${o.ticketNo}</td>
-                    <td>${memoBadge}</td>
-                    <td style="${uStyle}">${o.used ? '✔️ 已出餐' : '未出餐'}</td>
+                <tr class="date-group-header" onclick="toggleMonthGroup('grp-${safeId}', this)">
+                    <td colspan="7" style="background: #f8fafc; cursor: pointer; user-select: none;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div style="display: flex; align-items: center;">
+                                <span style="font-weight: 700; font-size: 1.1rem; color: var(--primary-color);">日期：${date}</span>
+                                <span style="margin-left: 10px; color: var(--text-muted); font-size: 0.95rem; margin-right: 10px;">共 ${dateOrders.length} 筆</span>
+                                ${statHtml}
+                            </div>
+                            <span class="toggle-icon dropdown-arrow" style="transition: transform 0.3s; transform: rotate(-90deg); font-size: 0.9rem; color: var(--text-muted);">▼</span>
+                        </div>
+                    </td>
                 </tr>
             `;
+
+            // 每筆詳細資料 (預設隱藏)
+            dateOrders.forEach(o => {
+                const isSelfPay = o.ticketNo.includes('自費');
+                const tStyle = isSelfPay ? "color: #dc2626; font-weight: bold;" : "";
+                const uStyle = o.used ? "color: var(--success-color); font-weight: bold;" : "color: var(--text-muted);";
+                const memoBadge = o.memo ? `<span style="background: #fffbeb; color: #92400e; padding: 2px 6px; border-radius: 4px; font-size: 0.85rem;">${o.memo}</span>` : '';
+                
+                trHtml += `
+                    <tr class="date-group-row grp-${safeId}" style="display: none;">
+                        <td style="font-weight: 500; padding-left: 24px;">${o.date}</td>
+                        <td style="font-family: var(--font-en);">${o.time || '-'}</td>
+                        <td style="font-weight: 500;">${o.name || '無'}</td>
+                        <td><span class="meal-badge badge-${o.option}" style="padding: 4px 8px; font-size: 0.9rem;">${o.option}</span></td>
+                        <td style="${tStyle}">${o.ticketNo}</td>
+                        <td>${memoBadge}</td>
+                        <td style="${uStyle}">${o.used ? '✔️ 已出餐' : '未出餐'}</td>
+                    </tr>
+                `;
+            });
         });
     }
 
     document.getElementById('monthly-list-body').innerHTML = trHtml;
+}
+
+// 供按鈕點擊切換顯示/隱藏的函式
+window.toggleMonthGroup = function(groupId, headerEl) {
+    const rows = document.querySelectorAll('.' + groupId);
+    let isHidden = true;
+    if (rows.length > 0) {
+        isHidden = rows[0].style.display === 'none';
+        rows.forEach(row => {
+            row.style.display = isHidden ? 'table-row' : 'none';
+        });
+    }
+    
+    // 切換箭頭圖示
+    const arrow = headerEl.querySelector('.toggle-icon');
+    if (arrow) {
+        if (isHidden) {
+            arrow.style.transform = 'rotate(0deg)';
+        } else {
+            arrow.style.transform = 'rotate(-90deg)';
+        }
+    }
 }
