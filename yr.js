@@ -187,14 +187,16 @@ function renderOrdersList(orders) {
                     <span class="time">${order.time || '未定'}</span>
                 </div>
                 <div class="user-info">
-                    <div class="meal-badge badge-${order.option}" style="font-size: 1.25rem; font-weight: 700; padding: 6px 14px; margin-bottom: 6px; display: inline-block;">
-                        ${order.option || '無內容'}
+                    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                        <div class="meal-badge badge-${order.option}" style="font-size: 1.15rem; font-weight: 700; padding: 4px 12px;">
+                            ${order.option || '無內容'}
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 1.05rem; font-weight: 500; color: var(--text-main);">${order.name || '無名稱'}</span>
+                            <span style="${ticketStyle}">券號: ${order.ticketNo || '無'}</span>
+                        </div>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <span style="font-size: 1.05rem; font-weight: 500; color: var(--text-main);">${order.name || '無名稱'}</span>
-                        <span style="${ticketStyle}">券號: ${order.ticketNo || '無'}</span>
-                    </div>
-                    ${order.memo ? `<div style="font-size: 0.85rem; color: #92400e; background: #fffbeb; padding: 4px 8px; border-radius: 6px; margin-top: 8px; border-left: 3px solid #fcd34d; font-weight: 500;">備註：${order.memo}</div>` : ''}
+                    ${order.memo ? `<div style="font-size: 0.85rem; color: #92400e; background: #fffbeb; padding: 4px 8px; border-radius: 6px; margin-top: 6px; border-left: 3px solid #fcd34d; font-weight: 500;">備註：${order.memo}</div>` : ''}
                 </div>
             </div>
             <div class="order-action">
