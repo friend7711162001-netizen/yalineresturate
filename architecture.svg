@@ -1,0 +1,182 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 620" width="100%" height="100%">
+    <!-- 底圖設定 (溫馨奶油色背景) -->
+    <rect width="100%" height="100%" fill="#fff8f0" />
+    
+    <defs>
+        <!-- 溫暖琥珀色箭頭 -->
+        <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#d97706" />
+        </marker>
+        
+        <!-- 柔和的陰影效果 -->
+        <filter id="warm-shadow" x="-5%" y="-5%" width="110%" height="110%">
+            <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#8a7a70" flood-opacity="0.12" />
+        </filter>
+
+        <style>
+            .node-rect {
+                fill: #ffffff;
+                stroke: #f3e8dd;
+                stroke-width: 2;
+                rx: 16;
+                filter: url(#warm-shadow);
+            }
+            .node-title {
+                fill: #4a3b32;
+                font-family: 'Noto Sans TC', 'Outfit', system-ui, sans-serif;
+                font-size: 16px;
+                font-weight: 700;
+                text-anchor: middle;
+            }
+            .node-desc {
+                fill: #8a7a70;
+                font-family: 'Noto Sans TC', 'Outfit', system-ui, sans-serif;
+                font-size: 13px;
+                text-anchor: middle;
+            }
+            .line-path {
+                fill: none;
+                stroke: #d97706;
+                stroke-width: 2.5;
+                marker-end: url(#arrow);
+            }
+            .line-label-bg {
+                fill: #fff7ed;
+                stroke: #fde68a;
+                stroke-width: 1;
+                rx: 6;
+            }
+            .line-label {
+                fill: #b45309;
+                font-family: 'Noto Sans TC', 'Outfit', system-ui, sans-serif;
+                font-size: 12px;
+                font-weight: 600;
+                text-anchor: middle;
+            }
+        </style>
+    </defs>
+
+    <!-- 線條規劃 -->
+    <!-- INIT -> API -->
+    <line x1="400" y1="100" x2="400" y2="154" class="line-path" />
+    
+    <!-- USER -> API -->
+    <path d="M 255 190 h 28" class="line-path" />
+    
+    <!-- API <-> GAS -->
+    <line x1="510" y1="175" x2="538" y2="175" class="line-path" />
+    <g transform="translate(524, 168)">
+        <rect x="-24" y="-12" width="48" height="20" class="line-label-bg" />
+        <text class="line-label" x="0" y="3">POST</text>
+    </g>
+
+    <line x1="545" y1="205" x2="517" y2="205" class="line-path" />
+    <g transform="translate(531, 218)">
+        <rect x="-20" y="-12" width="40" height="20" class="line-label-bg" />
+        <text class="line-label" x="0" y="3">GET</text>
+    </g>
+
+    <!-- API -> State -->
+    <line x1="400" y1="220" x2="400" y2="274" class="line-path" />
+    <g transform="translate(400, 248)">
+        <rect x="-45" y="-12" width="90" height="24" class="line-label-bg" />
+        <text class="line-label" x="0" y="4">寫入 / 更新</text>
+    </g>
+
+    <!-- State -> Controller -->
+    <line x1="400" y1="340" x2="400" y2="394" class="line-path" />
+    <g transform="translate(400, 368)">
+        <rect x="-45" y="-12" width="90" height="24" class="line-label-bg" />
+        <text class="line-label" x="0" y="4">讀取 / 過濾</text>
+    </g>
+
+    <!-- Controller -> UI1, UI2, UI3 -->
+    <path d="M 400 460 v 25 h -255 v 28" class="line-path" />
+    <path d="M 400 460 v 54" class="line-path" />
+    <path d="M 400 460 v 25 h 255 v 28" class="line-path" />
+
+    <g transform="translate(400, 485)">
+        <rect x="-50" y="-12" width="100" height="24" class="line-label-bg" />
+        <text class="line-label" x="0" y="4">觸發畫面渲染</text>
+    </g>
+
+    <!-- 輔助回饋線條 -->
+    <!-- USER -> Controller (Date pickers) -->
+    <path d="M 145 220 v 205 h 138" class="line-path" stroke-dasharray="6,4" />
+    <g transform="translate(145, 335)">
+        <rect x="-65" y="-12" width="130" height="24" class="line-label-bg" />
+        <text class="line-label" x="0" y="4">日期切換 (onChange)</text>
+    </g>
+    
+    <!-- UI1 -> API (markAsUsed) -->
+    <path d="M 230 520 v -310 h 53" class="line-path" stroke-dasharray="6,4" />
+    <g transform="translate(230, 380)">
+        <rect x="-65" y="-12" width="130" height="24" class="line-label-bg" />
+        <text class="line-label" x="0" y="4">狀態更新 (onClick)</text>
+    </g>
+    
+    <!-- 節點區塊 -->
+    
+    <!-- 1. Init -->
+    <g transform="translate(290, 40)">
+        <rect width="220" height="60" class="node-rect" />
+        <text x="110" y="26" class="node-title">DOMContentLoaded</text>
+        <text x="110" y="46" class="node-desc">App初始化與事件綁定</text>
+    </g>
+
+    <!-- 2. API -->
+    <g transform="translate(290, 160)">
+        <rect width="220" height="60" class="node-rect" />
+        <text x="110" y="26" class="node-title">fetchData / markAsUsed</text>
+        <text x="110" y="46" class="node-desc">資料擷取與狀態同步</text>
+    </g>
+
+    <!-- 3. State -->
+    <g transform="translate(290, 280)">
+        <rect width="220" height="60" class="node-rect" />
+        <text x="110" y="26" class="node-title">globalOrders (Array)</text>
+        <text x="110" y="46" class="node-desc">全域餐點資料記憶體</text>
+    </g>
+
+    <!-- 4. Controller -->
+    <g transform="translate(290, 400)">
+        <rect width="220" height="60" class="node-rect" />
+        <text x="110" y="26" class="node-title">renderApp / monthly</text>
+        <text x="110" y="46" class="node-desc">核心資料過濾與視圖排程</text>
+    </g>
+
+    <!-- 5.1 UI Left -->
+    <g transform="translate(35, 520)">
+        <rect width="220" height="60" class="node-rect" />
+        <text x="110" y="26" class="node-title">📋 renderOrdersList</text>
+        <text x="110" y="46" class="node-desc">左側：出餐明細卡片</text>
+    </g>
+
+    <!-- 5.2 UI Mid -->
+    <g transform="translate(290, 520)">
+        <rect width="220" height="60" class="node-rect" />
+        <text x="110" y="26" class="node-title">📊 renderDailyStats</text>
+        <text x="110" y="46" class="node-desc">今日：數據統計與時間軸</text>
+    </g>
+
+    <!-- 5.3 UI Right -->
+    <g transform="translate(545, 520)">
+        <rect width="220" height="60" class="node-rect" />
+        <text x="110" y="26" class="node-title">📅 renderMonthlyStats</text>
+        <text x="110" y="46" class="node-desc">月度：統計與完整總表</text>
+    </g>
+
+    <!-- Aux Left (USER) -->
+    <g transform="translate(35, 160)">
+        <rect width="220" height="60" class="node-rect" />
+        <text x="110" y="26" class="node-title">🙋 User Interactions</text>
+        <text x="110" y="46" class="node-desc">使用者操作觸發事件</text>
+    </g>
+
+    <!-- Aux Right (GAS) -->
+    <g transform="translate(545, 160)">
+        <rect width="220" height="60" class="node-rect" />
+        <text x="110" y="26" class="node-title">☁️ Google Apps Script</text>
+        <text x="110" y="46" class="node-desc">Google Sheets 雲端資料庫</text>
+    </g>
+</svg>
