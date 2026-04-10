@@ -2,24 +2,32 @@
    CSS Variables & Reset
    ========================================================================== */
 :root {
-  --primary-color: #d97706; /* 溫馨琥珀色/蜜糖橘 */
+  --primary-color: #d97706;
+  /* 溫馨琥珀色/蜜糖橘 */
   --primary-hover: #b45309;
-  --secondary-color: #3b82f6; 
-  --bg-color: #fff8f0; /* 非常淺的暖奶油色 */
-  --panel-bg: #fffcf9; /* 帶一點點溫馨基調的純白 */
-  --text-main: #4a3b32; /* 深咖啡色取代冰冷的純黑 */
+  --secondary-color: #3b82f6;
+  --bg-color: #fff8f0;
+  /* 非常淺的暖奶油色 */
+  --panel-bg: #fffcf9;
+  /* 帶一點點溫馨基調的純白 */
+  --text-main: #4a3b32;
+  /* 深咖啡色取代冰冷的純黑 */
   --text-muted: #8a7a70;
-  --border-color: #f3e8dd; /* 暖調邊框 */
-  --success-color: #65a30d; /* 溫和的綠色 */
-  
+  --border-color: #f3e8dd;
+  /* 暖調邊框 */
+  --success-color: #65a30d;
+  /* 溫和的綠色 */
+
   --font-tc: 'Noto Sans TC', sans-serif;
   --font-en: 'Outfit', sans-serif;
-  
-  --shadow-sm: 0 2px 4px rgba(138, 122, 112, 0.08); /* 暖色陰影 */
+
+  --shadow-sm: 0 2px 4px rgba(138, 122, 112, 0.08);
+  /* 暖色陰影 */
   --shadow-md: 0 4px 8px rgba(138, 122, 112, 0.12), 0 2px 4px rgba(138, 122, 112, 0.08);
   --shadow-lg: 0 10px 20px rgba(138, 122, 112, 0.15), 0 4px 6px rgba(138, 122, 112, 0.1);
-  
-  --radius-md: 16px; /* 更圓潤柔和的轉角 */
+
+  --radius-md: 16px;
+  /* 更圓潤柔和的轉角 */
   --radius-lg: 24px;
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -92,7 +100,8 @@ button {
   transform: translateY(-1px);
 }
 
-input[type="date"], input[type="month"] {
+input[type="date"],
+input[type="month"] {
   font-family: var(--font-en);
   padding: 8px 12px;
   border: 1px solid var(--border-color);
@@ -104,7 +113,8 @@ input[type="date"], input[type="month"] {
   background: #f9fafb;
 }
 
-input[type="date"]:focus, input[type="month"]:focus {
+input[type="date"]:focus,
+input[type="month"]:focus {
   border-color: var(--primary-color);
   box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
   background: white;
@@ -304,10 +314,12 @@ input[type="date"]:focus, input[type="month"]:focus {
   border-color: #e7e5e4;
   opacity: 0.65;
 }
+
 .order-card.used .user-info h4 {
   text-decoration: line-through;
   color: var(--text-muted);
 }
+
 .order-card.used .meal-badge {
   background: #e5e7eb;
   color: var(--text-muted);
@@ -358,9 +370,20 @@ input[type="date"]:focus, input[type="month"]:focus {
   font-weight: 700;
 }
 
-.meal-badge.badge-蟹蟹鍋 { background: #fee2e2; color: #ef4444; }
-.meal-badge.badge-菊A { background: #fef3c7; color: #d97706; }
-.meal-badge.badge-菊B { background: #dcfce3; color: #16a34a; }
+.meal-badge.badge-蟹蟹鍋 {
+  background: #fee2e2;
+  color: #ef4444;
+}
+
+.meal-badge.badge-菊A {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.meal-badge.badge-菊B {
+  background: #dcfce3;
+  color: #16a34a;
+}
 
 .order-action {
   display: flex;
@@ -400,11 +423,11 @@ input[type="date"]:focus, input[type="month"]:focus {
   transition: var(--transition);
 }
 
-.check-container:hover input ~ .checkmark {
+.check-container:hover input~.checkmark {
   border-color: var(--primary-color);
 }
 
-.check-container input:checked ~ .checkmark {
+.check-container input:checked~.checkmark {
   background-color: var(--success-color);
   border-color: var(--success-color);
 }
@@ -415,7 +438,7 @@ input[type="date"]:focus, input[type="month"]:focus {
   display: none;
 }
 
-.check-container input:checked ~ .checkmark:after {
+.check-container input:checked~.checkmark:after {
   display: block;
 }
 
@@ -438,6 +461,9 @@ input[type="date"]:focus, input[type="month"]:focus {
   flex-direction: column;
   gap: 24px;
   min-width: 320px;
+  position: sticky;
+  top: 24px;
+  align-self: flex-start;
 }
 
 .stats-card {
@@ -527,15 +553,18 @@ input[type="date"]:focus, input[type="month"]:focus {
 ::-webkit-scrollbar {
   width: 6px;
 }
+
 ::-webkit-scrollbar-track {
-  background: transparent; 
+  background: transparent;
 }
+
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1; 
+  background: #cbd5e1;
   border-radius: 10px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8; 
+  background: #94a3b8;
 }
 
 .time-row {
@@ -586,14 +615,15 @@ input[type="date"]:focus, input[type="month"]:focus {
   background: white;
   border-bottom-left-radius: var(--radius-md);
   border-bottom-right-radius: var(--radius-md);
-  -webkit-border-radius: var(--radius-md); 
+  -webkit-border-radius: var(--radius-md);
   overflow: hidden;
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--border-color);
   font-size: 0.95rem;
 }
 
-.monthly-table th, .monthly-table td {
+.monthly-table th,
+.monthly-table td {
   padding: 14px 16px;
   text-align: left;
   border-bottom: 1px solid var(--border-color);

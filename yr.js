@@ -2,7 +2,7 @@
 // API 金鑰與設定參數（請填入您自己的資訊）
 // =========================================================================
 // 請將發布後的 Web App URL 貼在這裡：
-const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw4-dxRuQ7e2iorqvle9P-kyw7jn09ZHbh8J09BJcyYZbJpu2HJ2TN492lvcr0eOGFw/exec';
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyIkPP_2bXM6_M62BbDB6zg4QT4LNdMsA_S9W4nQ5Ck_XnXm4kDZOIOKnRTc7RgrXvy/exec';
 
 // =========================================================================
 // 全域變數
@@ -10,7 +10,7 @@ const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw4-dxRuQ7e2iorqvle
 let globalOrders = []; // 暫存所有讀取的訂單
 
 // 目標過濾的餐點選項
-const TARGET_OPTIONS = ['蟹蟹鍋', '菊A', '菊B'];
+const TARGET_OPTIONS = ['蟹蟹鍋', '菊A', '菊B', '未訂位'];
 
 // 初始化時設定今天的日期
 document.addEventListener('DOMContentLoaded', () => {
@@ -20,9 +20,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const mm = String(today.getMonth() + 1).padStart(2, '0');
     const dd = String(today.getDate()).padStart(2, '0');
     document.getElementById('operation-date').value = `${yyyy}-${mm}-${dd}`;
-    
+
     document.getElementById('month-filter').value = `${yyyy}-${mm}`;
-    
+
     // 網頁載入後，直接從 GAS 抓取資料
     fetchData();
 });
@@ -39,7 +39,7 @@ async function fetchData() {
         }
 
         document.getElementById('orders-list').innerHTML = '<div class="loading-text">資料載入中，請稍後...</div>';
-        
+
         // 使用原生的 fetch 取代 gapi
         const response = await fetch(WEB_APP_URL);
         const data = await response.json();
@@ -55,19 +55,28 @@ async function fetchData() {
         }
 
         // 解析資料為物件格式
+        // 解析資料為物件格式
         globalOrders = values.map((row, index) => {
             return {
                 rowId: index + 2, // 因為我們從 A2 開始讀取，第一筆資料是第 2 列
-                orderId: row[0] || '',
-                name: row[2] || '',
-                ticketNo: row[5] || '', // F 欄: 券號
-                option: row[6] || '',
-                date: row[7] || '', // H 欄: 餐日期
-                time: row[8] || '', // I 欄: 餐時間
-                memo: row[10] || '', // K 欄: 備註
-                used: row[11] || '' // L 欄: "已用券"
+                orderId: (row[0] || '').toString().trim(),
+                name: (row[2] || '').toString().trim(),
+                days: (row[4] || '').toString().trim(),
+                rooms: (row[5] || '').toString().trim(),
+                ticketNo: (row[6] || '').toString().trim(),
+                option: (row[7] || '').toString().trim(),
+                date: (row[8] || '').toString().trim(),
+                time: (row[9] || '').toString().trim(),
+                memo: (row[11] || '').toString().trim(),
+                used: (row[12] || '').toString().trim()
             };
-        }).filter(order => TARGET_OPTIONS.includes(order.option)); // 預先過濾出我們關心的餐點
+        }).filter(order => {
+            // 如果欄位名稱包含我們想要的關鍵字就留下來
+            return TARGET_OPTIONS.some(target => order.option.includes(target));
+        });
+
+        console.log('抓取到的原始資料第一筆:', values[0]);
+        console.log('過濾後的資料數量:', globalOrders.length);
 
         renderApp();
         renderMonthlyStats();
@@ -82,7 +91,7 @@ async function fetchData() {
 async function markAsUsed(rowId, isChecked) {
     try {
         const value = isChecked ? 'V' : ''; // 勾選打 V，取消清空
-        
+
         // 呼叫 GAS 發布的 doPost 來寫入資料
         // 使用 Content-Type: text/plain 可以避免觸發不必要的 CORS OPTIONS 請求
         const response = await fetch(WEB_APP_URL, {
@@ -95,9 +104,9 @@ async function markAsUsed(rowId, isChecked) {
                 value: value
             })
         });
-        
+
         const data = await response.json();
-        
+
         if (data.error) {
             throw new Error(data.error);
         }
@@ -107,7 +116,7 @@ async function markAsUsed(rowId, isChecked) {
         if (order) {
             order.used = value;
             renderApp();
-            renderMonthlyStats(); 
+            renderMonthlyStats();
         }
 
     } catch (err) {
@@ -135,16 +144,19 @@ function dateToSheetFormat(dateStr) {
 function renderApp() {
     const dateInput = document.getElementById('operation-date').value;
     const targetDateStr = dateToSheetFormat(dateInput);
-    
+
     // 過濾出符合今日日期的訂單
     const dailyOrders = globalOrders.filter(order => {
-        const orderDateParts = order.date.split('/');
-        if (orderDateParts.length === 2) {
-            const om = parseInt(orderDateParts[0], 10);
-            const od = parseInt(orderDateParts[1], 10);
-            return `${om}/${od}` === targetDateStr;
-        }
-        return order.date === targetDateStr;
+        // 統一處理日期比對，確保 04/07 與 4/7 都能匹配
+        const normalizeDate = (d) => {
+            if (!d) return '';
+            const p = d.split('T')[0].split('/'); // 處理 ISO 或 M/D 格式
+            if (p.length >= 2) return `${parseInt(p[p.length - 2])}/${parseInt(p[p.length - 1])}`;
+            const p2 = d.split('-'); // 處理 YYYY-MM-DD
+            if (p2.length >= 3) return `${parseInt(p2[1])}/${parseInt(p2[2])}`;
+            return d;
+        };
+        return normalizeDate(order.date) === normalizeDate(targetDateStr);
     });
 
     // 依據時間先後排序
@@ -163,7 +175,7 @@ function renderApp() {
 
 function renderOrdersList(orders) {
     const listContainer = document.getElementById('orders-list');
-    
+
     if (orders.length === 0) {
         listContainer.innerHTML = '<div class="loading-text">此日期尚無符合的訂單。</div>';
         return;
@@ -172,13 +184,13 @@ function renderOrdersList(orders) {
     let html = '';
     orders.forEach(order => {
         const isUsed = order.used.trim() !== '';
-        
+
         // 判斷是否包含「自費」，若有則套用顯眼的紅字與大字體樣式
         const isSelfPay = order.ticketNo.includes('自費');
-        const ticketStyle = isSelfPay 
+        const ticketStyle = isSelfPay
             ? "font-size: 1.15rem; font-weight: bold; color: #dc2626; background: #fee2e2; border: 1px solid #f87171; padding: 2px 8px; border-radius: 4px; letter-spacing: 0.5px;"
             : "font-size: 0.8rem; font-weight: normal; color: var(--text-muted); background: #f3e8dd; padding: 2px 6px; border-radius: 4px; letter-spacing: 0.5px;";
-        
+
         html += `
         <div class="order-card ${isUsed ? 'used' : ''}">
             <div class="order-left-group">
@@ -216,9 +228,9 @@ function renderOrdersList(orders) {
 
 function renderDailyStats(orders, dateLabel) {
     document.getElementById('current-date-display').innerText = dateLabel;
-    
+
     // 計算各品項總數
-    let stats = { '蟹蟹鍋': 0, '菊A': 0, '菊B': 0 };
+    let stats = { '蟹蟹鍋': 0, '菊A': 0, '菊B': 0, '未訂位': 0 };
     orders.forEach(o => {
         if (stats[o.option] !== undefined) stats[o.option]++;
     });
@@ -240,13 +252,13 @@ function renderDailyStats(orders, dateLabel) {
 
     const timelineContainer = document.getElementById('daily-timeline');
     let timelineHtml = '';
-    
+
     Object.keys(timeGroups).forEach(time => {
         let itemCounts = {};
         timeGroups[time].forEach(opt => {
             itemCounts[opt] = (itemCounts[opt] || 0) + 1;
         });
-        
+
         let itemsHtml = '';
         Object.keys(itemCounts).forEach(opt => {
             itemsHtml += `<span class="timeline-item">${opt} x ${itemCounts[opt]}</span>`;
@@ -260,20 +272,20 @@ function renderDailyStats(orders, dateLabel) {
             </div>
         </div>`;
     });
-    
+
     if (orders.length === 0) timelineHtml = '<p style="color:#8a7a70; font-size: 0.9rem;">無出餐排程</p>';
-    
+
     timelineContainer.innerHTML = timelineHtml;
 }
 
 function renderMonthlyStats() {
     const monthInput = document.getElementById('month-filter').value;
     if (!monthInput) return;
-    
+
     const parts = monthInput.split('-');
     const targetMonth = parseInt(parts[1], 10);
-    
-    let stats = { '蟹蟹鍋': 0, '菊A': 0, '菊B': 0 };
+
+    let stats = { '蟹蟹鍋': 0, '菊A': 0, '菊B': 0, '未訂位': 0 };
     let monthOrders = [];
 
     globalOrders.forEach(order => {
@@ -299,7 +311,7 @@ function renderMonthlyStats() {
         const ad = a.date.split('/')[1] || 0;
         const bd = b.date.split('/')[1] || 0;
         if (ad !== bd) return parseInt(ad) - parseInt(bd);
-        
+
         const parseTime = (timeStr) => {
             if (!timeStr) return 9999;
             const parts = timeStr.split(':');
@@ -326,22 +338,22 @@ function renderMonthlyStats() {
 
         Object.keys(groupedByDate).forEach(date => {
             const dateOrders = groupedByDate[date];
-            
+
             // 計算各別筆數
-            let stats = { '蟹蟹鍋': 0, '菊A': 0, '菊B': 0 };
+            let stats = { '蟹蟹鍋': 0, '菊A': 0, '菊B': 0, '未訂位': 0 };
             dateOrders.forEach(o => {
-                if(stats[o.option] !== undefined) stats[o.option]++;
+                if (stats[o.option] !== undefined) stats[o.option]++;
             });
             let statHtml = '';
-            for(let key in stats) {
-                if(stats[key] > 0) {
+            for (let key in stats) {
+                if (stats[key] > 0) {
                     statHtml += `<span style="margin-left: 8px; font-size: 0.85em; padding: 2px 8px;" class="meal-badge badge-${key}">${key}: ${stats[key]}</span>`;
                 }
             }
 
             // 產生唯一群組 ID (例如將 3/31 轉為 3-31)
             const safeId = date.replace(/[^a-zA-Z0-9]/g, '-');
-            
+
             trHtml += `
                 <tr class="date-group-header" onclick="toggleMonthGroup('grp-${safeId}', this)">
                     <td colspan="7" style="background: #f8fafc; cursor: pointer; user-select: none;">
@@ -363,7 +375,7 @@ function renderMonthlyStats() {
                 const tStyle = isSelfPay ? "color: #dc2626; font-weight: bold;" : "";
                 const uStyle = o.used ? "color: var(--success-color); font-weight: bold;" : "color: var(--text-muted);";
                 const memoBadge = o.memo ? `<span style="background: #fffbeb; color: #92400e; padding: 2px 6px; border-radius: 4px; font-size: 0.85rem;">${o.memo}</span>` : '';
-                
+
                 trHtml += `
                     <tr class="date-group-row grp-${safeId}" style="display: none;">
                         <td style="font-weight: 500; padding-left: 24px;">${o.date}</td>
@@ -383,7 +395,7 @@ function renderMonthlyStats() {
 }
 
 // 供按鈕點擊切換顯示/隱藏的函式
-window.toggleMonthGroup = function(groupId, headerEl) {
+window.toggleMonthGroup = function (groupId, headerEl) {
     const rows = document.querySelectorAll('.' + groupId);
     let isHidden = true;
     if (rows.length > 0) {
@@ -392,7 +404,7 @@ window.toggleMonthGroup = function(groupId, headerEl) {
             row.style.display = isHidden ? 'table-row' : 'none';
         });
     }
-    
+
     // 切換箭頭圖示
     const arrow = headerEl.querySelector('.toggle-icon');
     if (arrow) {
