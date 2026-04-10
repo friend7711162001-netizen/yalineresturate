@@ -2,7 +2,7 @@
 // API 金鑰與設定參數（請填入您自己的資訊）
 // =========================================================================
 // 請將發布後的 Web App URL 貼在這裡：
-const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyIkPP_2bXM6_M62BbDB6zg4QT4LNdMsA_S9W4nQ5Ck_XnXm4kDZOIOKnRTc7RgrXvy/exec';
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyTMm7coLqK4yNkTNVM3jgvYCpyLWZyraj9-N_fEzcs10MTsZwK3Llxf3AbOPZcD1ch/exec';
 
 // =========================================================================
 // 全域變數
