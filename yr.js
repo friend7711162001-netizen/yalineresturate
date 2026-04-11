@@ -188,23 +188,23 @@ function renderOrdersList(orders) {
         // 判斷是否包含「自費」，若有則套用顯眼的紅字與大字體樣式
         const isSelfPay = order.ticketNo.includes('自費');
         const ticketStyle = isSelfPay
-            ? "font-size: 1.4rem; font-weight: bold; color: #dc2626; background: #fee2e2; border: 1px solid #f87171; padding: 4px 10px; border-radius: 4px; letter-spacing: 0.5px; box-shadow: 0 2px 4px rgba(220, 38, 38, 0.1);"
-            : "font-size: 1.2rem; font-weight: bold; color: #334155; background: #f1f5f9; border: 1px solid #cbd5e1; padding: 4px 10px; border-radius: 4px; letter-spacing: 0.5px; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);";
+            ? "font-size: 1.15rem; font-weight: bold; color: #dc2626; background: #fee2e2; border: 1px solid #f87171; padding: 2px 8px; border-radius: 4px; letter-spacing: 0.5px;"
+            : "font-size: 0.8rem; font-weight: normal; color: var(--text-muted); background: #f3e8dd; padding: 2px 6px; border-radius: 4px; letter-spacing: 0.5px;";
 
         html += `
         <div class="order-card ${isUsed ? 'used' : ''}">
             <div class="order-left-group">
-                <div class="time-slot">
+                <div class="time-slot" style="min-width: 85px;">
                     <span style="font-size: 0.8rem; font-weight: bold; color: var(--primary-hover); opacity: 0.8; margin-bottom: 2px;">${order.date || '無日期'}</span>
                     <span class="time">${order.time || '未定'}</span>
                 </div>
                 <div class="user-info">
-                    <div class="user-info-header">
-                        <div class="meal-badge badge-${order.option}">
+                    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                        <div class="meal-badge badge-${order.option}" style="font-size: 1.15rem; font-weight: 700; padding: 4px 12px;">
                             ${order.option || '無內容'}
                         </div>
-                        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-                            <span style="font-size: 0.9rem; font-weight: 500; color: var(--text-muted);">${order.name || '無名稱'}</span>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 1.05rem; font-weight: 500; color: var(--text-main);">${order.name || '無名稱'}</span>
                             <span style="${ticketStyle}">券號: ${order.ticketNo || '無'}</span>
                         </div>
                     </div>
@@ -372,9 +372,7 @@ function renderMonthlyStats() {
             // 每筆詳細資料 (預設隱藏)
             dateOrders.forEach(o => {
                 const isSelfPay = o.ticketNo.includes('自費');
-                const tStyle = isSelfPay 
-                    ? "color: #dc2626; font-weight: bold; font-size: 1.15rem;" 
-                    : "color: #334155; font-weight: bold; font-size: 1.05rem;";
+                const tStyle = isSelfPay ? "color: #dc2626; font-weight: bold;" : "";
                 const uStyle = o.used ? "color: var(--success-color); font-weight: bold;" : "color: var(--text-muted);";
                 const memoBadge = o.memo ? `<span style="background: #fffbeb; color: #92400e; padding: 2px 6px; border-radius: 4px; font-size: 0.85rem;">${o.memo}</span>` : '';
 
