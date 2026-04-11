@@ -194,16 +194,16 @@ function renderOrdersList(orders) {
         html += `
         <div class="order-card ${isUsed ? 'used' : ''}">
             <div class="order-left-group">
-                <div class="time-slot" style="min-width: 85px;">
+                <div class="time-slot">
                     <span style="font-size: 0.8rem; font-weight: bold; color: var(--primary-hover); opacity: 0.8; margin-bottom: 2px;">${order.date || '無日期'}</span>
                     <span class="time">${order.time || '未定'}</span>
                 </div>
                 <div class="user-info">
-                    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-                        <div class="meal-badge badge-${order.option}" style="font-size: 1.15rem; font-weight: 700; padding: 4px 12px;">
+                    <div class="user-info-header">
+                        <div class="meal-badge badge-${order.option}">
                             ${order.option || '無內容'}
                         </div>
-                        <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                             <span style="font-size: 1.05rem; font-weight: 500; color: var(--text-main);">${order.name || '無名稱'}</span>
                             <span style="${ticketStyle}">券號: ${order.ticketNo || '無'}</span>
                         </div>
