@@ -359,7 +359,7 @@ function renderMonthlyStats() {
                     <td colspan="7" style="background: #f8fafc; cursor: pointer; user-select: none;">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <div style="display: flex; align-items: center;">
-                                <span style="font-weight: 700; font-size: 1.1rem; color: var(--primary-color);">日期：${date}</span>
+                                <span style="font-weight: 700; font-size: 1.1rem; color: var(--primary-color);">${date}</span>
                                 <span style="margin-left: 10px; color: var(--text-muted); font-size: 0.95rem; margin-right: 10px;">共 ${dateOrders.length} 筆</span>
                                 ${statHtml}
                             </div>
