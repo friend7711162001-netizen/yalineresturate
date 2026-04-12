@@ -187,39 +187,36 @@ function renderOrdersList(orders) {
 
         // 判斷是否包含「自費」，若有則套用顯眼的紅字與大字體樣式
         const isSelfPay = order.ticketNo.includes('自費');
-        const ticketStyle = isSelfPay
-            ? "font-size: 1.15rem; font-weight: bold; color: #dc2626; background: #fee2e2; border: 1px solid #f87171; padding: 2px 8px; border-radius: 4px; letter-spacing: 0.5px;"
-            : "font-size: 0.8rem; font-weight: normal; color: var(--text-muted); background: #f3e8dd; padding: 2px 6px; border-radius: 4px; letter-spacing: 0.5px;";
+        const ticketClass = isSelfPay ? "ticket-tag self-pay" : "ticket-tag normal-pay";
 
         html += `
-        <div class="order-card ${isUsed ? 'used' : ''}" style="flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 14px;">
-            <!-- 第一行：日期時間 選項 券號 -->
-            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <div class="order-card ${isUsed ? 'used' : ''}">
+            <div class="order-left-group">
                 <div class="time-slot" style="min-width: 85px;">
                     <span style="font-size: 0.8rem; font-weight: bold; color: var(--primary-hover); opacity: 0.8; margin-bottom: 2px;">${order.date || '無日期'}</span>
                     <span class="time">${order.time || '未定'}</span>
                 </div>
-                <div class="meal-badge badge-${order.option}" style="font-size: 1.15rem; font-weight: 700; padding: 4px 12px;">
-                    ${order.option || '無內容'}
-                </div>
-                <span style="${ticketStyle}">券號: ${order.ticketNo || '無'}</span>
-            </div>
-            
-            <!-- 第二行：姓名 與 已用券 -->
-            <div style="display: flex; align-items: center; justify-content: space-between; padding-left: 4px;">
-                <span style="font-size: 1.15rem; font-weight: 500; color: var(--text-main);">${order.name || '無名稱'}</span>
-                <div class="order-action">
-                    <label class="check-container" style="margin: 0;"> 已用券
-                        <input type="checkbox" class="checkbox-row-${order.rowId}" 
-                               ${isUsed ? 'checked' : ''} 
-                               onchange="markAsUsed(${order.rowId}, this.checked)">
-                        <span class="checkmark"></span>
-                    </label>
+                <div class="user-info">
+                    <div class="ui-row">
+                        <div class="meal-badge badge-${order.option}" style="font-size: 1.15rem; font-weight: 700; padding: 4px 12px;">
+                            ${order.option || '無內容'}
+                        </div>
+                        <div class="ui-name-ticket">
+                            <span class="order-name">${order.name || '無名稱'}</span>
+                            <span class="${ticketClass}">券號: ${order.ticketNo || '無'}</span>
+                        </div>
+                    </div>
+                    ${order.memo ? `<div class="order-memo">備註：${order.memo}</div>` : ''}
                 </div>
             </div>
-
-            <!-- 備註 -->
-            ${order.memo ? `<div style="font-size: 0.85rem; color: #92400e; background: #fffbeb; padding: 6px 10px; border-radius: 6px; border-left: 3px solid #fcd34d; font-weight: 500;">備註：${order.memo}</div>` : ''}
+            <div class="order-action">
+                <label class="check-container"> 已用券
+                    <input type="checkbox" class="checkbox-row-${order.rowId}" 
+                           ${isUsed ? 'checked' : ''} 
+                           onchange="markAsUsed(${order.rowId}, this.checked)">
+                    <span class="checkmark"></span>
+                </label>
+            </div>
         </div>
         `;
     });

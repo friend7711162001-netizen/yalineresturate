@@ -355,9 +355,59 @@ input[type="month"]:focus {
   color: var(--text-muted);
 }
 
-.user-info h4 {
-  font-size: 1.1rem;
-  margin-bottom: 4px;
+.user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.ui-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.ui-name-ticket {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.order-name {
+  font-size: 0.95rem; /* 姓名小一點 */
+  font-weight: 500;
+  color: var(--text-main);
+}
+
+.ticket-tag {
+  font-size: 1.15rem; /* 券號大一點 */
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  letter-spacing: 0.5px;
+}
+
+.ticket-tag.normal-pay {
+  color: #92400e;
+  background: #fde68a;
+  border: 1px solid #fcd34d;
+}
+
+.ticket-tag.self-pay {
+  color: #dc2626;
+  background: #fee2e2;
+  border: 1px solid #f87171;
+}
+
+.order-memo {
+  font-size: 0.85rem;
+  color: #92400e;
+  background: #fffbeb;
+  padding: 6px 10px;
+  border-radius: 6px;
+  margin-top: 6px;
+  border-left: 3px solid #fcd34d;
+  font-weight: 500;
 }
 
 .meal-badge {
@@ -711,19 +761,54 @@ input[type="month"]:focus {
     white-space: normal;
   }
 
-  /* 訂單卡片手機版排版優化：改為垂直堆疊，留出更多橫向空間給文字 */
+  /* 訂單卡片手機版排版優化：使用 CSS Grid 完成兩行版面配置 */
   .order-card {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 16px;
+    display: grid;
+    grid-template-columns: auto auto 1fr;
+    grid-template-rows: auto auto auto;
+    column-gap: 12px;
+    row-gap: 12px;
+    align-items: center;
+    padding: 16px 14px;
   }
-  .order-left-group {
-    align-items: flex-start;
+  
+  /* 解除這些包裹容器，讓內部元素直接成為 Grid 項目 */
+  .order-left-group, .user-info, .ui-row, .ui-name-ticket {
+    display: contents;
+  }
+
+  /* 第一行：日期時間 選項 券號 */
+  .time-slot {
+    grid-column: 1 / 2;
+    grid-row: 1 / 2;
+  }
+  .meal-badge {
+    grid-column: 2 / 3;
+    grid-row: 1 / 2;
+  }
+  .ticket-tag {
+    grid-column: 3 / 4;
+    grid-row: 1 / 2;
+    margin-right: auto;
+  }
+
+  /* 第二行：姓名 與 已用券 */
+  .order-name {
+    grid-column: 1 / 3;
+    grid-row: 2 / 3;
   }
   .order-action {
-    justify-content: flex-end;
-    border-top: 1px dashed var(--border-color);
-    padding-top: 12px;
+    grid-column: 3 / 4;
+    grid-row: 2 / 3;
+    justify-content: flex-end; /* 將 Checkbox 靠右對齊 */
+    width: 100%;
+  }
+
+  /* 第三行：(如果有) 備註 */
+  .order-memo {
+    grid-column: 1 / 4;
+    grid-row: 3 / 4;
+    margin-top: 0;
   }
 }
 
