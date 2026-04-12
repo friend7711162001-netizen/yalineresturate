@@ -725,4 +725,11 @@ input[type="month"]:focus {
     border-top: 1px dashed var(--border-color);
     padding-top: 12px;
   }
+}
+
+/* 確保平板/手機模式下，右側面板必定能撐滿與左側相同的寬度 */
+@media (max-width: 1024px) {
+  .right-panel {
+    align-self: stretch !important;
+  }
 }
