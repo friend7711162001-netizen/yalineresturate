@@ -7,7 +7,9 @@ const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyTMm7coLqK4yNkTNVM
 // =========================================================================
 // 全域變數
 // =========================================================================
-let globalOrders = []; // 暫存所有讀取的訂單
+let allParsedOrders = []; // 暫存所有讀取的原始訂單 (含所有欄位資料)
+let globalOrders = [];    // 暫存符合餐點篩選的訂單
+let currentVoucherSubtab = 'pending'; // 500元券號子頁籤 ('pending'|'completed'|'all')
 
 // 目標過濾的餐點選項
 const TARGET_OPTIONS = ['蟹蟹鍋', '菊A', '菊B', '未訂位'];
@@ -22,6 +24,15 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('operation-date').value = `${yyyy}-${mm}-${dd}`;
 
     document.getElementById('month-filter').value = `${yyyy}-${mm}`;
+
+    // 讀取並套用預設/上次開啟的分頁
+    let savedTab = 'meals';
+    try {
+        savedTab = localStorage.getItem('activeTab') || 'meals';
+    } catch (e) {
+        savedTab = 'meals';
+    }
+    switchTab(savedTab);
 
     // 網頁載入後，直接從 GAS 抓取資料
     fetchData();
@@ -39,6 +50,8 @@ async function fetchData() {
         }
 
         document.getElementById('orders-list').innerHTML = '<div class="loading-text">資料載入中，請稍後...</div>';
+        const vListBody = document.getElementById('voucher500-list-body');
+        if (vListBody) vListBody.innerHTML = '<tr><td colspan="7" class="loading-text" style="text-align: center;">資料載入中，請稍後...</td></tr>';
 
         // 使用原生的 fetch 取代 gapi
         const response = await fetch(WEB_APP_URL);
@@ -51,12 +64,12 @@ async function fetchData() {
         const values = data.values;
         if (!values || values.length === 0) {
             document.getElementById('orders-list').innerHTML = '<div class="loading-text">找不到任何資料。</div>';
+            if (vListBody) vListBody.innerHTML = '<tr><td colspan="7" class="loading-text" style="text-align: center;">找不到任何資料。</td></tr>';
             return;
         }
 
-        // 解析資料為物件格式
-        // 解析資料為物件格式
-        globalOrders = values.map((row, index) => {
+        // 解析全量資料為物件格式
+        allParsedOrders = values.map((row, index) => {
             return {
                 rowId: index + 2, // 因為我們從 A2 開始讀取，第一筆資料是第 2 列
                 orderId: (row[0] || '').toString().trim(),
@@ -70,19 +83,25 @@ async function fetchData() {
                 memo: (row[11] || '').toString().trim(),
                 used: (row[12] || '').toString().trim()
             };
-        }).filter(order => {
-            // 如果欄位名稱包含我們想要的關鍵字就留下來
-            return TARGET_OPTIONS.some(target => order.option.includes(target));
+        });
+
+        // 過濾出餐點相關訂單 (自動排除 H 欄選項包含「取消」之資料)
+        globalOrders = allParsedOrders.filter(order => {
+            const isCancelled = order.option.includes('取消');
+            return !isCancelled && TARGET_OPTIONS.some(target => order.option.includes(target));
         });
 
         console.log('抓取到的原始資料第一筆:', values[0]);
-        console.log('過濾後的資料數量:', globalOrders.length);
+        console.log('過濾餐點後的資料數量:', globalOrders.length);
 
         renderApp();
         renderMonthlyStats();
+        renderVoucher500List();
 
     } catch (err) {
         document.getElementById('orders-list').innerHTML = `<div class="loading-text" style="color:red;">讀取失敗：${err.message}</div>`;
+        const vListBody = document.getElementById('voucher500-list-body');
+        if (vListBody) vListBody.innerHTML = `<tr><td colspan="7" class="loading-text" style="color:red; text-align:center;">讀取失敗：${err.message}</td></tr>`;
         console.error(err);
     }
 }
@@ -93,7 +112,6 @@ async function markAsUsed(rowId, isChecked) {
         const value = isChecked ? 'V' : ''; // 勾選打 V，取消清空
 
         // 呼叫 GAS 發布的 doPost 來寫入資料
-        // 使用 Content-Type: text/plain 可以避免觸發不必要的 CORS OPTIONS 請求
         const response = await fetch(WEB_APP_URL, {
             method: 'POST',
             headers: {
@@ -111,19 +129,26 @@ async function markAsUsed(rowId, isChecked) {
             throw new Error(data.error);
         }
 
-        // 局部更新本地端資料並重繪
-        const order = globalOrders.find(o => o.rowId === rowId);
-        if (order) {
-            order.used = value;
-            renderApp();
-            renderMonthlyStats();
+        // 局部同步更新本地端資料並重繪所有介面
+        const orderInAll = allParsedOrders.find(o => o.rowId === rowId);
+        if (orderInAll) {
+            orderInAll.used = value;
         }
+        const orderInGlobal = globalOrders.find(o => o.rowId === rowId);
+        if (orderInGlobal) {
+            orderInGlobal.used = value;
+        }
+
+        renderApp();
+        renderMonthlyStats();
+        renderVoucher500List();
 
     } catch (err) {
         alert(`更新失敗: ${err.message}`);
         console.error(err);
         // 回復 checkbox 狀態
-        document.querySelector(`.checkbox-row-${rowId}`).checked = !isChecked;
+        const checkboxes = document.querySelectorAll(`.checkbox-row-${rowId}`);
+        checkboxes.forEach(cb => cb.checked = !isChecked);
     }
 }
 
@@ -413,3 +438,168 @@ window.toggleMonthGroup = function (groupId, headerEl) {
         }
     }
 }
+
+// =========================================================================
+// 500元已用券勾選與搜尋邏輯 (含「待核銷/已核銷」子頁籤)
+// =========================================================================
+
+function switchVoucherSubtab(subtab) {
+    currentVoucherSubtab = subtab;
+    const buttons = document.querySelectorAll('.v-subtab');
+    buttons.forEach(btn => {
+        if (btn.getAttribute('data-subtab') === subtab) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+    renderVoucher500List();
+}
+window.switchVoucherSubtab = switchVoucherSubtab;
+
+function renderVoucher500List() {
+    const listBody = document.getElementById('voucher500-list-body');
+    if (!listBody) return;
+
+    const searchInput = document.getElementById('voucher-search-input');
+    const searchVal = (searchInput ? searchInput.value : '').trim().toLowerCase();
+    const clearBtn = document.getElementById('clear-search-btn');
+
+    if (clearBtn) {
+        clearBtn.style.display = searchVal ? 'block' : 'none';
+    }
+
+    // 基礎有效券號資料：G欄券號 (ticketNo) 非空，且 H欄餐點選項非「取消」
+    const validVouchers = allParsedOrders.filter(order => {
+        const hasTicket = order.ticketNo !== '';
+        const isCancelled = order.option.includes('取消');
+        return hasTicket && !isCancelled;
+    });
+
+    // 計算各狀況數量並更新子頁籤數字
+    const pendingList = validVouchers.filter(o => o.used.trim() === '');
+    const completedList = validVouchers.filter(o => o.used.trim() !== '');
+
+    const pendingEl = document.getElementById('v-pending-count');
+    const completedEl = document.getElementById('v-completed-count');
+    const allEl = document.getElementById('v-all-count');
+    if (pendingEl) pendingEl.innerText = pendingList.length;
+    if (completedEl) completedEl.innerText = completedList.length;
+    if (allEl) allEl.innerText = validVouchers.length;
+
+    // 依當前子頁籤分類過濾
+    let activeVouchers = [];
+    if (currentVoucherSubtab === 'pending') {
+        activeVouchers = pendingList;
+    } else if (currentVoucherSubtab === 'completed') {
+        activeVouchers = completedList;
+    } else {
+        activeVouchers = validVouchers;
+    }
+
+    // 若有搜尋關鍵字，依券號或姓名搜尋比對
+    if (searchVal) {
+        activeVouchers = activeVouchers.filter(order => {
+            return order.ticketNo.toLowerCase().includes(searchVal) ||
+                   order.name.toLowerCase().includes(searchVal);
+        });
+    }
+
+    // 更新右側數量標籤
+    const badge = document.getElementById('voucher-count-badge');
+    if (badge) {
+        let labelText = '顯示: ' + activeVouchers.length + ' 筆';
+        if (currentVoucherSubtab === 'pending') labelText = `待核銷: ${activeVouchers.length} 筆`;
+        else if (currentVoucherSubtab === 'completed') labelText = `已核銷: ${activeVouchers.length} 筆`;
+        badge.innerText = labelText;
+    }
+
+    if (activeVouchers.length === 0) {
+        let emptyText = '目前尚無任何券號資料。';
+        if (searchVal) {
+            emptyText = `找不到符合「${searchVal}」的券號。`;
+        } else if (currentVoucherSubtab === 'pending') {
+            emptyText = '🎉 太棒了！目前尚無任何待核銷的券號。';
+        } else if (currentVoucherSubtab === 'completed') {
+            emptyText = '目前尚無任何已核銷的券號資料。';
+        }
+        listBody.innerHTML = `<tr><td colspan="7" class="loading-text" style="text-align: center; padding: 40px;">${emptyText}</td></tr>`;
+        return;
+    }
+
+    let html = '';
+    activeVouchers.forEach(o => {
+        const isUsed = o.used.trim() !== '';
+        const isSelfPay = o.ticketNo.includes('自費');
+        const ticketBadgeClass = isSelfPay ? "ticket-tag self-pay" : "ticket-tag normal-pay";
+        const memoBadge = o.memo ? `<span style="background: #fffbeb; color: #92400e; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; border-left: 3px solid #fcd34d;">${o.memo}</span>` : '<span style="color:var(--text-muted);">-</span>';
+
+        html += `
+            <tr class="${isUsed ? 'used-row' : ''}">
+                <td><span class="${ticketBadgeClass}">${o.ticketNo}</span></td>
+                <td style="font-weight: 600;">${o.name || '無'}</td>
+                <td><span class="meal-badge badge-${o.option}">${o.option || '無'}</span></td>
+                <td>${o.date || '-'}</td>
+                <td style="font-family: var(--font-en); font-weight: 500;">${o.time || '-'}</td>
+                <td>${memoBadge}</td>
+                <td>
+                    <label class="check-container standalone-check" title="${isUsed ? '點擊取消勾選(復原為待核銷)' : '點擊勾選核銷'}">
+                        <input type="checkbox" class="checkbox-row-${o.rowId}" 
+                               ${isUsed ? 'checked' : ''} 
+                               onchange="markAsUsed(${o.rowId}, this.checked)">
+                        <span class="checkmark"></span>
+                    </label>
+                </td>
+            </tr>
+        `;
+    });
+
+    listBody.innerHTML = html;
+}
+window.renderVoucher500List = renderVoucher500List;
+
+function clearVoucherSearch() {
+    const searchInput = document.getElementById('voucher-search-input');
+    if (searchInput) {
+        searchInput.value = '';
+        renderVoucher500List();
+        searchInput.focus();
+    }
+}
+window.clearVoucherSearch = clearVoucherSearch;
+
+// =========================================================================
+// 分頁切換功能 (Header Nav Tabs)
+// =========================================================================
+function switchTab(tabName) {
+    document.body.setAttribute('data-tab', tabName);
+
+    const tabs = document.querySelectorAll('.nav-tab');
+    tabs.forEach(tab => {
+        if (tab.getAttribute('data-tab') === tabName) {
+            tab.classList.add('active');
+        } else {
+            tab.classList.remove('active');
+        }
+    });
+
+    const mealsWrapper = document.getElementById('view-meals-wrapper');
+    const voucherWrapper = document.getElementById('view-voucher500-wrapper');
+
+    if (tabName === 'voucher500') {
+        if (mealsWrapper) mealsWrapper.style.display = 'none';
+        if (voucherWrapper) voucherWrapper.style.display = 'block';
+        renderVoucher500List();
+    } else {
+        if (mealsWrapper) mealsWrapper.style.display = 'block';
+        if (voucherWrapper) voucherWrapper.style.display = 'none';
+    }
+
+    try {
+        localStorage.setItem('activeTab', tabName);
+    } catch (e) {
+        console.warn('Unable to save activeTab to localStorage:', e);
+    }
+}
+window.switchTab = switchTab;
+
