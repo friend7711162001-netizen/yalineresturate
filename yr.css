@@ -263,8 +263,24 @@ input[type="month"]:focus {
 }
 
 /* ==========================================================================
-   500元已用券勾選專屬頁面樣式
+   500元已用券勾選專屬頁面樣式 & 切換控制
    ========================================================================== */
+body[data-tab="voucher500"] #view-meals-wrapper {
+  display: none !important;
+}
+
+body[data-tab="voucher500"] #view-voucher500-wrapper {
+  display: block !important;
+}
+
+body:not([data-tab="voucher500"]) #view-meals-wrapper {
+  display: block !important;
+}
+
+body:not([data-tab="voucher500"]) #view-voucher500-wrapper {
+  display: none !important;
+}
+
 .voucher500-section {
   max-width: 1600px;
   margin: 24px auto 40px auto;

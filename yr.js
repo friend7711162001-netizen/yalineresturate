@@ -194,8 +194,24 @@ function renderApp() {
         return parseTime(a.time) - parseTime(b.time);
     });
 
+    // 統計 500券：從全部資料中挑出 H 欄為「500券」(排除取消) 且 I 欄日期符合作業日期的筆數
+    // 注意：不放進 globalOrders，避免影響出餐明細、時間軸與月度統計
+    const normalizeDate500 = (d) => {
+        if (!d) return '';
+        const p = d.split('T')[0].split('/');
+        if (p.length >= 2) return `${parseInt(p[p.length - 2])}/${parseInt(p[p.length - 1])}`;
+        const p2 = d.split('-');
+        if (p2.length >= 3) return `${parseInt(p2[1])}/${parseInt(p2[2])}`;
+        return d;
+    };
+    const voucher500Count = allParsedOrders.filter(order =>
+        order.option.includes('500券') &&
+        !order.option.includes('取消') &&
+        normalizeDate500(order.date) === normalizeDate500(targetDateStr)
+    ).length;
+
     renderOrdersList(dailyOrders);
-    renderDailyStats(dailyOrders, `${targetDateStr} (${dailyOrders.length} 份)`);
+    renderDailyStats(dailyOrders, `${targetDateStr} (${dailyOrders.length} 份)`, voucher500Count);
 }
 
 function renderOrdersList(orders) {
@@ -249,7 +265,7 @@ function renderOrdersList(orders) {
     listContainer.innerHTML = html;
 }
 
-function renderDailyStats(orders, dateLabel) {
+function renderDailyStats(orders, dateLabel, voucher500Count = 0) {
     document.getElementById('current-date-display').innerText = dateLabel;
 
     // 計算各品項總數
@@ -263,6 +279,8 @@ function renderDailyStats(orders, dateLabel) {
     Object.keys(stats).forEach(key => {
         gridHtml += `<div class="stat-item"><span class="label">${key}</span><span class="value">${stats[key]}</span></div>`;
     });
+    // 額外加上 500券 統計格 (單位：張)
+    gridHtml += `<div class="stat-item"><span class="label">500券</span><span class="value">${voucher500Count} 張</span></div>`;
     document.getElementById('daily-stats-grid').innerHTML = gridHtml;
 
     // 渲染時間軸
@@ -572,6 +590,7 @@ window.clearVoucherSearch = clearVoucherSearch;
 // 分頁切換功能 (Header Nav Tabs)
 // =========================================================================
 function switchTab(tabName) {
+    console.log('切換分頁至:', tabName);
     document.body.setAttribute('data-tab', tabName);
 
     const tabs = document.querySelectorAll('.nav-tab');
@@ -587,18 +606,22 @@ function switchTab(tabName) {
     const voucherWrapper = document.getElementById('view-voucher500-wrapper');
 
     if (tabName === 'voucher500') {
-        if (mealsWrapper) mealsWrapper.style.display = 'none';
-        if (voucherWrapper) voucherWrapper.style.display = 'block';
-        renderVoucher500List();
+        if (mealsWrapper) mealsWrapper.style.setProperty('display', 'none', 'important');
+        if (voucherWrapper) voucherWrapper.style.setProperty('display', 'block', 'important');
+        try {
+            renderVoucher500List();
+        } catch (err) {
+            console.error('渲染 500元券號清單時發生錯誤:', err);
+        }
     } else {
-        if (mealsWrapper) mealsWrapper.style.display = 'block';
-        if (voucherWrapper) voucherWrapper.style.display = 'none';
+        if (mealsWrapper) mealsWrapper.style.setProperty('display', 'block', 'important');
+        if (voucherWrapper) voucherWrapper.style.setProperty('display', 'none', 'important');
     }
 
     try {
         localStorage.setItem('activeTab', tabName);
     } catch (e) {
-        console.warn('Unable to save activeTab to localStorage:', e);
+        console.warn('無法儲存 activeTab 到 localStorage:', e);
     }
 }
 window.switchTab = switchTab;
